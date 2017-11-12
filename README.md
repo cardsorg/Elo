@@ -1,5 +1,5 @@
 # Elo
-Elo is a C++ header-only implementation of the Elo rating system. Since Elo is header-only, it is very easy to add Elo to your project. Elo is licensed under the MIT License. See the `LICENSE` file for more details.
+Elo is a C++11 header-only implementation of the Elo rating system. Since Elo is header-only, it is very easy to add Elo to your project. Elo is licensed under the MIT License. See the `LICENSE` file for more details.
 
 For each player being rated, initialize a Player object:
 
@@ -18,13 +18,18 @@ Elo::System system (40);
 
 When the results come in, update each player's rating using the following methods of `Elo::System`:
 ```C++
-Player rate_k (Player player, std::vector<Player> opponents, std::vector<double> scores, double k);
-Player rate(Player player, std::vector<Player> opponents, std::vector<double> scores);
-void update_k(Player& player, std::vector<Player> opponents, std::vector<double> scores, double k);
-void update(Player& player, std::vector<Player> opponents, std::vector<double> scores)
+template <typename Iterable1, typename Iterable2>
+Player rate_list_k(Player match_player, Iterable1 opponents, Iterable2 scores, double k);
+
+template <typename Iterable1, typename Iterable2>
+Player rate_list(Player match_player, Iterable1 opponents, Iterable2 scores);
+
+Player rate_match_k(Player match_player, Match match, double k);
+
+Player rate_match(Player match_player, Match match);
 ```
 
-`rate` returns a new `Elo::Player` object with the new rating, while `update` modifies the player object to the new rating. `rate_k` and `update_k` allow you to specify a `K` value other than the default. The `player` parameter is the player being rated, `opponents` is the list of opponents, and `scores` are the list of scores against each opponent. Use `Elo::WIN()` to record a win, `Elo::DRAW()` to record a draw, and `ELO::LOSS()` to record a loss.
+`rate_list_k` and `rate_match_k` allow you to specify a `K` value other than the default. The `player` parameter is the player being rated, `opponents` is the list of opponents, and `scores` are the list of scores against each opponent. Use `Elo::WIN()` to record a win, `Elo::DRAW()` to record a draw, and `ELO::LOSS()` to record a loss.
 
 For example, using the System above, if `player1` above draws against `player2` and wins against `player3`, you can update their rating directly:
 
