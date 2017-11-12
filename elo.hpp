@@ -21,16 +21,19 @@ THE SOFTWARE.
 
 #include <cmath>
 #include <exception>
+#include <initializer_list>
 #include <iostream>
+#include <iterator>
+#include <map>
 #include <vector>
 
 namespace Elo {
 
-double WIN(int times = 1) {
+double WIN(std::size_t times = 1) {
 	return 1.0 * times;
 }
 
-double DRAW(int times = 1) {
+double DRAW(std::size_t times = 1) {
 	return 0.5 * times;
 }
 
@@ -123,6 +126,62 @@ public:
 
 LogisticDistribution default_distribution(10, 400);
 
+class Match {
+public:
+	std::vector<Player> opponents;
+	std::vector<double> scores;
+
+	Match() {};
+
+	Match(std::vector<Player> initial_opponents, std::vector<double> initial_scores):
+		opponents(initial_opponents), scores(initial_scores) {};
+
+	Match(std::initializer_list<Player> initial_opponents, std::initializer_list<double> initial_scores):
+		opponents(initial_opponents), scores(initial_scores) {};
+
+	Match(Player initial_opponent, double initial_score) {
+		opponents.push_back(initial_opponent);
+		scores.push_back(initial_score);
+	}
+
+	std::vector<Player> get_opponents() {
+		return opponents;
+	}
+
+	std::vector<double> get_scores() {
+		return scores;
+	}
+
+	void add_opponent(Player opponent) {
+		opponents.push_back(opponent);
+	}
+
+	void add_score(double score) {
+		scores.push_back(score);
+	}
+
+	void add_opponent_score(Player opponent, double score) {
+		add_opponent(opponent);
+		add_score(score);
+	}
+
+	template <typename Iterable>
+	void add_opponents(Iterable new_opponents) {
+		opponents.insert(opponents.end(), std::begin(new_opponents), std::end(new_opponents));
+	}
+
+	template <typename Iterable>
+	void add_scores(Iterable new_scores) {
+		scores.insert(scores.end(), std::begin(new_scores), std::end(new_scores));
+	}
+
+	template <typename Iterable1, typename Iterable2>
+	void add_opponents_scores(Iterable1 new_opponents, Iterable2 new_scores) {
+		add_opponents(new_opponents);
+		add_scores(new_scores);
+	}
+};
+
 class System {
 	Distribution* dist;
 	double default_k;
@@ -155,31 +214,37 @@ public:
 		return 1 - dist->cdf(b.get_rating(), a.get_rating());
 	}
 
-	Player rate_k(Player player, std::vector<Player> opponents, std::vector<double> scores, double k) {
+	template <typename Iterable1, typename Iterable2>
+	Player rate_list_k(Player match_player, Iterable1 opponents, Iterable2 scores, double k) {
+		if (opponents.size() != scores.size()) {
+			throw std::invalid_argument("Number of opponents does not equal number of scores.");
+		}
+
 		double expected_sum = 0.0;
-		for (int i = 0; i < opponents.size(); i++) {
-			expected_sum += expected_score(player.get_rating(), opponents[i].get_rating());
+		for (auto opponent : opponents) {
+			expected_sum += expected_score(match_player.get_rating(), opponent.get_rating());
 			std::cout << expected_sum << std::endl;
 		}
 
 		double score_sum = 0.0;
-		for (int i = 0; i < scores.size(); i++) {
-			score_sum += scores[i];
+		for (auto score : scores) {
+			score_sum += score;
 		}
 
-		return Player (player.get_rating() + k * (score_sum - expected_sum));
+		return Player (match_player.get_rating() + k * (score_sum - expected_sum));
 	}
 
-	Player rate(Player player, std::vector<Player> opponents, std::vector<double> scores) {
-		return rate_k(player, opponents, scores, default_k);
+	template <typename Iterable1, typename Iterable2>
+	Player rate_list(Player match_player, Iterable1 opponents, Iterable2 scores) {
+		return rate_list_k(match_player, opponents, scores, default_k);
 	}
 
-	void update_k(Player& player, std::vector<Player> opponents, std::vector<double> scores, double k) {
-		player = rate_k(player, opponents, scores, k);
+	Player rate_match_k(Player match_player, Match match, double k) {
+		return rate_list_k(match_player, match.get_opponents(), match.get_scores(), k);
 	}
 
-	void update(Player& player, std::vector<Player> opponents, std::vector<double> scores) {
-		player = rate(player, opponents, scores);
+	Player rate_match(Player match_player, Match match) {
+		return rate_list(match_player, match.get_opponents(), match.get_scores());
 	}
 };
 }
