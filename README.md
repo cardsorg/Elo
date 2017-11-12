@@ -44,5 +44,10 @@ Elo::Player new_player1 = system.rate_match(player1, match);
 ```
 Note that `player2` and `player3` needs to be updated as well, and if `player1` is changed, we cannot rate games against `player1` as they would be calculated against the new rating. Therefore, it is best to keep `new_player1` and all other new ratings separate before updating the ratings. Future versions will come with an `Event` object that automatically does this for you.
 
+To get the players' ratings, simply use `get_rating`:
+```C++
+player1 = new_player1;
+double rating = player1.get_rating();
+```
 ## Advanced use
 If you just want a rating system, the above instructions will suffice. But Elo comes with the ability to specify an alternative probability distribution for ratings. The default is the logistic distribution with scale = 400 and base = 10 (instead of the constant *e*), but other distributions may be specified. Inherit the `Elo::Distribution` class than override the `cdf` method (the cumulative distribution function). Then pass it to the system. Elo comes with the logistic and normal (Gaussian) distribution.
