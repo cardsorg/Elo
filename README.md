@@ -29,7 +29,7 @@ Player rate_match_k(Player match_player, Match match, double k);
 Player rate_match(Player match_player, Match match);
 ```
 
-`rate_list_k` and `rate_match_k` allow you to specify a `K` value other than the default. The `player` parameter is the player being rated, `opponents` is the list of opponents, and `scores` are the list of scores against each opponent. Use `Elo::WIN()` to record a win, `Elo::DRAW()` to record a draw, and `ELO::LOSS()` to record a loss.
+`rate_list_k` and `rate_match_k` allow you to specify a `K` value other than the default. The `player` parameter is the player being rated, `opponents` is the list of opponents, and `scores` are the list of scores against each opponent. Use `Elo::WIN()` to record a win, `Elo::DRAW()` to record a draw, and `Elo::LOSS()` to record a loss.
 
 For example, using the System above, if `player1` above draws against `player2` and wins against `player3`, you can update their rating directly:
 
