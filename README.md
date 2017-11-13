@@ -42,7 +42,10 @@ You can also use the `Match` object, a container for matches:
 Elo::Match match ({player2, player3}, {Elo::DRAW(), Elo::WIN()});
 Elo::Player new_player1 = system.rate_match(player1, match);
 ```
-Note that `player2` and `player3` needs to be updated as well, and if `player1` is changed, we cannot rate games against `player1` as they would be calculated against the new rating. Therefore, it is best to keep `new_player1` and all other new ratings separate before updating the ratings. Future versions will come with an `Event` object that automatically does this for you.
+
+To add opponent-score pairs afterwards, use `add_opponent_score` (which takes a single `Player` and `double`) or `add_opponents_scores` (which takes two iterators).
+
+Note that `player2` and `player3` needs to be updated as well, and if `player1` is changed, we cannot rate games against `player1` as they would be calculated against the new rating. Therefore, it is best to keep `new_player1` and all other new ratings separate before updating the ratings.
 
 To get the players' ratings, simply use `get_rating`:
 ```C++
