@@ -126,9 +126,27 @@ public:
 LogisticDistribution default_distribution(10, 400);
 
 class Match {
-public:
 	std::vector<Player> opponents;
 	std::vector<double> scores;
+
+	void add_opponent(Player opponent) {
+		opponents.push_back(opponent);
+	}
+
+	void add_score(double score) {
+		scores.push_back(score);
+	}
+
+	template <typename Iterable>
+	void add_opponents(Iterable new_opponents) {
+		opponents.insert(opponents.end(), std::begin(new_opponents), std::end(new_opponents));
+	}
+
+	template <typename Iterable>
+	void add_scores(Iterable new_scores) {
+		scores.insert(scores.end(), std::begin(new_scores), std::end(new_scores));
+	}
+public:
 
 	Match() {};
 
@@ -151,27 +169,9 @@ public:
 		return scores;
 	}
 
-	void add_opponent(Player opponent) {
-		opponents.push_back(opponent);
-	}
-
-	void add_score(double score) {
-		scores.push_back(score);
-	}
-
 	void add_opponent_score(Player opponent, double score) {
 		add_opponent(opponent);
 		add_score(score);
-	}
-
-	template <typename Iterable>
-	void add_opponents(Iterable new_opponents) {
-		opponents.insert(opponents.end(), std::begin(new_opponents), std::end(new_opponents));
-	}
-
-	template <typename Iterable>
-	void add_scores(Iterable new_scores) {
-		scores.insert(scores.end(), std::begin(new_scores), std::end(new_scores));
 	}
 
 	template <typename Iterable1, typename Iterable2>
