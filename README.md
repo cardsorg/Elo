@@ -7,7 +7,6 @@ For each player being rated, initialize a Player object:
 Elo::Player player1 (1500);
 Elo::Player player2 (1600);
 Elo::Player player3 (1300);
-
 ```
 
 Now create a System object which stores the parameters of the Elo system. The *K* value specifies the maximum change in rating per event (i.e., a series of games against different opponents). For example, to set *K* = 40:
@@ -16,34 +15,21 @@ Now create a System object which stores the parameters of the Elo system. The *K
 Elo::System system (40);
 ```
 
-When the results come in, update each player's rating using the following methods of `Elo::System`:
+When the results come in, record them using the `Match` object, a container for matches. Create a `Match` for each player being rated:
 ```C++
-template <typename Iterable1, typename Iterable2>
-Player rate_list_k(Player match_player, Iterable1 opponents, Iterable2 scores, double k);
-
-template <typename Iterable1, typename Iterable2>
-Player rate_list(Player match_player, Iterable1 opponents, Iterable2 scores);
-
-Player rate_match_k(Player match_player, Match match, double k);
-
-Player rate_match(Player match_player, Match match);
-```
-
-`rate_list_k` and `rate_match_k` allow you to specify a `K` value other than the default. The `player` parameter is the player being rated, `opponents` is the list of opponents, and `scores` are the list of scores against each opponent. Use `Elo::WIN()` to record a win, `Elo::DRAW()` to record a draw, and `Elo::LOSS()` to record a loss.
-
-For example, using the System above, if `player1` above draws against `player2` and wins against `player3`, you can update their rating directly:
-
-```C++
-Elo::Player new_player1 = system.rate_list(player1, {player2, player3}, {Elo::DRAW(), Elo::WIN()});
-```
-
-You can also use the `Match` object, a container for matches:
-```C++
-Elo::Match match ({player2, player3}, {Elo::DRAW(), Elo::WIN()});
+Elo::Match match;
+match.add_result(player2, Elo::DRAW());
+match.add_result(player3, Elo::WIN());
 Elo::Player new_player1 = system.rate_match(player1, match);
 ```
 
-To add opponent-score pairs afterwards, use `add_opponent_score` (which takes a single `Player` and `double`) or `add_opponents_scores` (which takes two iterators).
+`rate_match_k` allows you to specify a *K* value other than the default. For example, if you want *K* = 20 instead, then
+```C++
+Elo::Match match;
+match.add_result(player2, Elo::DRAW());
+match.add_result(player3, Elo::WIN());
+Elo::Player new_player1 = system.rate_match_k(player1, match, 20);
+```
 
 Note that `player2` and `player3` needs to be updated as well, and if `player1` is changed, we cannot rate games against `player1` as they would be calculated against the new rating. Therefore, it is best to keep `new_player1` and all other new ratings separate before updating the ratings.
 
