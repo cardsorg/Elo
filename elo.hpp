@@ -23,7 +23,6 @@ THE SOFTWARE.
 #include <exception>
 #include <initializer_list>
 #include <list>
-#include <iostream>
 #include <iterator>
 #include <utility>
 #include <vector>
