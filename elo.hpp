@@ -20,7 +20,6 @@ THE SOFTWARE.
 #pragma once
 
 #include <cmath>
-#include <exception>
 #include <initializer_list>
 #include <list>
 #include <iterator>
