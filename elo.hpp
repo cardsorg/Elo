@@ -20,9 +20,7 @@ THE SOFTWARE.
 #pragma once
 
 #include <cmath>
-#include <initializer_list>
-#include <list>
-#include <iterator>
+#include <functional>
 #include <utility>
 #include <vector>
 
@@ -40,7 +38,6 @@ double round_places(double x, double places) {
 	double scale = std::pow(10.0, places);
 	return std::round(x * scale) / scale;
 }
-
 
 struct Distribution {
 public:
@@ -75,25 +72,21 @@ public:
 
 LogisticDistribution default_distribution(10, 400);
 
+class Player;
+class Match;
+
 struct Configuration {
 	Distribution& dist;
-	double k;
+	std::function<double(Player&)> calculate_k;
 
 	Configuration(Distribution& initial_distribution, double initial_k):
-		dist(initial_distribution), k(initial_k) {};
+		dist(initial_distribution), calculate_k([initial_k](Player& p) {return initial_k;}) {};
+
+	Configuration(Distribution& initial_distribution, std::function<double(Player&)> initial_calculate_k):
+		dist(initial_distribution), calculate_k(initial_calculate_k) {};
 };
 
 Configuration default_configuration(default_distribution, 32);
-
-class Player;
-struct Match {
-	Player& opponent;
-	// This is the result for player_a.
-	double result;
-
-	Match(Player &initial_opponent, double initial_result):
-		opponent(initial_opponent), result(initial_result) {};
-};
 
 class Player {
 	std::vector<Match> matches;
@@ -109,14 +102,32 @@ public:
 		return round_places(rating, places);
 	}
 
-	void add_match(Match m) {
-		matches.push_back(m);
-		// Update rating.
-		rating += config.k * (m.result - config.dist.cdf(m.opponent.rating, rating));
-	}
-
 	std::vector<Match> get_matches() {
 		return matches;
+	}
+
+	// Add match WITHOUT changing rating.
+	void add_match(Match& m) {
+		matches.push_back(m);
+	}
+};
+
+struct Match {
+	Player& player_a;
+	Player& player_b;
+	// This is the result for player_a.
+	double result;
+
+	Match(Player& initial_player_a, Player& initial_player_b, double initial_result):
+		player_a(initial_player_a), player_b(initial_player_b), result(initial_result) {};
+
+	void apply() {
+		double player_a_delta = player_a.config.calculate_k(player_a) * (result - player_a.config.dist.cdf(player_b.rating, player_a.rating));
+		double player_b_delta = player_b.config.calculate_k(player_b) * ((1 - result) - player_b.config.dist.cdf(player_a.rating, player_b.rating));
+		player_a.rating += player_a_delta;
+		player_b.rating += player_b_delta;
+		player_a.add_match(*this);
+		player_b.add_match(*this);
 	}
 };
 }
