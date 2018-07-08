@@ -28,17 +28,10 @@ THE SOFTWARE.
 
 namespace Elo {
 
-double WIN(std::size_t times = 1) {
-	return 1.0 * times;
-}
+double WIN = 1;
+double DRAW = 0.5;
+double LOSS = 0;
 
-double DRAW(std::size_t times = 1) {
-	return 0.5 * times;
-}
-
-double LOSS() {
-	return 0;
-}
 double round_places(double x, double places) {
 	if (x == 0) {
 		return 0;
@@ -48,33 +41,14 @@ double round_places(double x, double places) {
 	return std::round(x * scale) / scale;
 }
 
-class Player {
-	double rating;
 
-public:
-	Player(double initial_rating):
-		rating(initial_rating) {};
-
-	double get_rating() const {
-		return rating;
-	}
-
-	void set_rating(double new_rating) {
-		rating = new_rating;
-	}
-
-	double round_rating(double places) {
-		return round_places(rating, places);
-	}
-};
-
-class Distribution {
+struct Distribution {
 public:
 	virtual double cdf(double x, double mean) const { return 0; };
 	virtual ~Distribution() {};
 };
 
-class LogisticDistribution : public Distribution {
+struct LogisticDistribution : public Distribution {
 	double base;
 	double scale;
 
@@ -82,41 +56,17 @@ public:
 	LogisticDistribution(double initial_base, double initial_scale):
 		base(initial_base), scale(initial_scale) {};
 
-	double get_base() const {
-		return base;
-	}
-
-	double get_scale() const {
-		return scale;
-	}
-
-	void set_base(double new_base) {
-		base = new_base;
-	}
-
-	void set_scale(double new_scale) {
-		scale = new_scale;
-	}
-
 	virtual double cdf(double x, double mean) const override {
 		return 1.0 / (1.0 + std::pow(base, -((x - mean) / scale)));
 	}
 };
 
-class NormalDistribution : public Distribution {
+struct NormalDistribution : public Distribution {
 	double stdev;
 
 public:
 	NormalDistribution(double initial_stdev):
 		stdev(initial_stdev) {};
-
-	double get_stdev() const {
-		return stdev;
-	}
-
-	void set_stdev(double new_stdev) {
-		stdev = new_stdev;
-	}
 
 	virtual double cdf(double x, double mean) const override {
 		return (1 + std::erf((x - mean) / (stdev * std::sqrt(2)))) / 2;
@@ -125,99 +75,48 @@ public:
 
 LogisticDistribution default_distribution(10, 400);
 
-class Match {
-	std::list<std::pair<Player, double>> results;
+struct Configuration {
+	Distribution& dist;
+	double k;
 
-public:
-	Match() {};
-
-	Match(std::list<std::pair<Player, double>> initial_results):
-		results(initial_results) {};
-
-	Match(std::initializer_list<std::pair<Player, double>> initial_results):
-		results(initial_results) {};
-
-	template <typename IterablePairs>
-	Match(IterablePairs opponent_result_pairs) {
-		add_results(opponent_result_pairs);
-	}
-
-	void add_result(Player opponent, double result) {
-		results.push_back(std::make_pair(opponent, result));
-	}
-
-	template <typename Iterator>
-	void add_results(Iterator opponent_result_pairs) {
-		for (auto pair : opponent_result_pairs) {
-			add_result(pair.first, pair.second);
-		}
-	}
-
-	void remove_result(std::size_t n) {
-		auto result_loc = results.begin();
-		std::advance(result_loc, n);
-		results.erase(result_loc);
-	}
-
-	void clear_results() {
-		results.clear();
-	}
-
-	std::size_t matches() {
-		return results.size();
-	}
-
-	std::list<std::pair<Player, double>> get_results() {
-		return results;
-	}
+	Configuration(Distribution& initial_distribution, double initial_k):
+		dist(initial_distribution), k(initial_k) {};
 };
 
-class System {
-	Distribution* dist;
-	double default_k;
+Configuration default_configuration(default_distribution, 32);
+
+class Player;
+struct Match {
+	Player& opponent;
+	// This is the result for player_a.
+	double result;
+
+	Match(Player &initial_opponent, double initial_result):
+		opponent(initial_opponent), result(initial_result) {};
+};
+
+class Player {
+	std::vector<Match> matches;
 
 public:
-	System(double initial_default_k = 32, Distribution *initial_dist = &default_distribution):
-		dist(initial_dist), default_k(initial_default_k) {};
+	double rating;
+	Configuration config;
 
-	Distribution get_distribution() {
-		return *dist;
+	Player(double initial_rating, Configuration initial_configuration = default_configuration):
+		rating(initial_rating), config(initial_configuration) {};
+
+	double round_rating(double places) {
+		return round_places(rating, places);
 	}
 
-	void set_distribution(Distribution new_dist) {
-		dist = &new_dist;
+	void add_match(Match m) {
+		matches.push_back(m);
+		// Update rating.
+		rating += config.k * (m.result - config.dist.cdf(m.opponent.rating, rating));
 	}
 
-	void set_distribution(Distribution* new_dist) {
-		dist = new_dist;
-	}
-
-	double get_default_k() const {
-		return default_k;
-	};
-
-	void set_default_k(double new_default_k) {
-		default_k = new_default_k;
-	}
-
-	double expected_score(Player a, Player b) {
-		return 1 - dist->cdf(b.get_rating(), a.get_rating());
-	}
-
-	Player rate_match_k(Player match_player, Match rated_match, double k) {
-		double expected_sum = 0.0;
-		double score_sum = 0.0;
-
-		for (auto game : rated_match.get_results()) {
-			expected_sum += expected_score(match_player.get_rating(), game.first.get_rating());
-			score_sum += game.second;
-		}
-
-		return Player (match_player.get_rating() + k * (score_sum - expected_sum));
-	}
-
-	Player rate_match(Player match_player, Match match) {
-		return rate_match_k(match_player, match, default_k);
+	std::vector<Match> get_matches() {
+		return matches;
 	}
 };
 }
