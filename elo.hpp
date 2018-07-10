@@ -75,16 +75,16 @@ public:
 LogisticDistribution default_distribution(10, 400);
 
 class Player;
-class Match;
+struct Match;
 
 struct Configuration {
 	std::function<double(Player&)> calculate_k;
 	Distribution& dist;
 
-	Configuration(double initial_k, Distribution& initial_distribution):
+	Configuration(double initial_k, Distribution& initial_distribution = default_distribution):
 		calculate_k([initial_k](Player& p) {return initial_k;}), dist(initial_distribution) {};
 
-	Configuration(std::function<double(Player&)> initial_calculate_k, Distribution& initial_distribution):
+	Configuration(std::function<double(Player&)> initial_calculate_k, Distribution& initial_distribution = default_distribution):
 		calculate_k(initial_calculate_k), dist(initial_distribution) {};
 };
 
@@ -137,10 +137,10 @@ struct IntervalEstimate {
 	double lower;
 	double estimate;
 	double upper;
+	double p;
 	bool lower_infinity = false;
 	bool estimate_infinity = false;
 	bool upper_infinity = false;
-
 };
 
 /* Source: Abramowitz, M. & Stegun, I. (1964).
@@ -198,6 +198,7 @@ IntervalEstimate binomial_estimate(double x, double n, double p = 0.95) {
 	est.estimate = mid;
 	est.lower = mid - delta;
 	est.upper = mid + delta;
+	est.p = p;
 	return est;
 }
 
@@ -212,7 +213,7 @@ double logistic_inverse_cdf(double x, double mean = 0, double scale = LOGISTIC_D
 
 
 // Rating difference assuming the default Logistic distribution.
-IntervalEstimate estimate_rating_difference(double wins, double draws, double losses, double p = 0.95) {
+IntervalEstimate estimate_rating_difference(int wins, int draws, int losses, double p = 0.95) {
 	if (wins < 0 || draws < 0 || losses < 0) {
 		throw std::invalid_argument("wins, draws, and losses must be nonnegative.");
 	}
