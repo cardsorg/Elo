@@ -124,6 +124,10 @@ int main(int argc, const char *argv[]) {
 		double p;
 		if (argc == 6) {
 			p = std::stod(args[5]);
+			if (p < 0 || p > 1) {
+				std::cerr << "Error: p must be between 0 and 1 (inclusive)." << std::endl;
+				return 1;
+			}
 		} else {
 			p = 0.95;
 		}
