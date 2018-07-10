@@ -120,17 +120,31 @@ struct Match {
 	// This is the result for player_a.
 	double result;
 
-	Match(Player& initial_player_a, Player& initial_player_b, double initial_result):
-		player_a(initial_player_a), player_b(initial_player_b), result(initial_result) {};
+	Match(Player& initial_player_a, Player& initial_player_b, double initial_result, bool apply_now = false):
+		player_a(initial_player_a), player_b(initial_player_b), result(initial_result) {
+			if (apply_now) {
+				apply();
+			}
+		};
 
-	void apply() {
+	bool apply() {
+		if (applied) {
+			return false;
+		}
+
 		double player_a_delta = player_a.config.calculate_k(player_a) * (result - player_a.config.dist.cdf(player_b.rating, player_a.rating));
 		double player_b_delta = player_b.config.calculate_k(player_b) * ((1 - result) - player_b.config.dist.cdf(player_a.rating, player_b.rating));
 		player_a.rating += player_a_delta;
 		player_b.rating += player_b_delta;
 		player_a.add_match(*this);
 		player_b.add_match(*this);
+
+		applied = true;
+		return true;
 	}
+
+private:
+	bool applied = false;
 };
 
 struct IntervalEstimate {
