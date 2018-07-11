@@ -9,3 +9,6 @@ elo: elo.o
 
 elo.o: elo.cpp
 	$(CC) $(CFLAGS) elo.cpp
+
+clean:
+	rm -f *.o elo

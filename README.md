@@ -7,7 +7,6 @@ Create a `Configuration` object to configure the *K* constant of the Elo system.
 Elo::Configuration config1(32);
 Elo::Configuration config2(16);
 Elo::Configuration config3(64);
-
 ```
 
 For each player being rated, initialize a `Player` object. The `Player` object constructor takes the player's initial rating (first argument) and the configuration that will be used (second). In most cases, you will want to create a single configuration and apply it to each player.
@@ -42,7 +41,7 @@ std::cout << player1.rating << std::endl;
 ### Custom distributions
 If you just want a rating system, the above instructions will suffice. But Elo comes with the ability to specify an alternative probability distribution for ratings. The default is the logistic distribution with scale = 400 and base = 10 (instead of the constant *e*). Most users use this distribution, like the US Chess Federation.
 
-Other distributions may be specified. For example, the Féderation Internationale des Échecs (FIDE) uses a piecewise normal distribution and this will have to be specified if you want to rate FIDE (international chess) games. Inherit the `Elo::Distribution` class than override the `cdf` method (the cumulative distribution function). Then pass it to the system using the `initial_distribution` parameter. Elo comes with the logistic and normal (Gaussian) distribution.
+Other distributions may be specified. For example, the Féderation Internationale des Échecs (FIDE) uses a piecewise normal distribution and this will have to be specified if you want to rate FIDE (international chess) games. Inherit the `Elo::Distribution` class than override the `cdf` method (the cumulative distribution function). Then pass it to the `Configuration` as the second argument. Elo comes with the logistic and normal (Gaussian) distribution.
 
 ### Estimating rating difference
 Let us suppose that two players have played a series of *n* games against each other, and you wish to know the approximate Elo rating difference between the two players. Elo comes with a function `Elo::estimate_rating_difference()` that lets you do just that.
