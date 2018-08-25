@@ -149,7 +149,8 @@ int main(int argc, const char *argv[]) {
 		print_diff(est, true);
 
 	} else {
-		std::cerr << "Error: '" << args[1] << "' is not an elo command. For a list of commands, see 'elo help.'" << std::endl;
+		std::cerr << "Error: '" << args[1] << "' is not an elo command. Please consult command list below." << std::endl;
+		show_help();
 		return 1;
 	}
 	return 0;
