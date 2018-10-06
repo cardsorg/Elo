@@ -52,7 +52,7 @@ Elo::IntervalEstimate diff = Elo::estimate_rating_difference(10, 5, 8, p=0.95)
 
 In the above, a player has won 10 games, drawn 5 games, and lost 8 games against one other player. We want to know how many Elo points stronger or weaker this player is than another player, and we want to get a 95 percent confidence interval on this difference. This function does just that. The estimated difference is stored in `diff.estimate`, the lower bound of the interval is `diff.lower`, and the upper bound of the interval is `diff.upper`.
 
-In some cases, the player might have won or lost all their games against another player. In this case, no estimate can be made because the system needs to see both at least a win and a loss to calculate an estimate (a draw is considered as 1 win and 1 loss in the Elo system). When this happens, `diff.estimate_infinity` is `true` to indicate that an estimate cannot be made.
+In some cases, the player might have won or lost all their games against another player. In this case, no estimate can be made because the system needs to see both at least a win and a loss to calculate an estimate (a draw is considered as 1 win and 1 loss in the Elo system). When this happens, `diff.estimate_infinity` is `true` to indicate that an estimate cannot be made. However, the algorithm may be replaced with a Bayesian algorithm in the future in order to give a full probability distribution on ratings, although calculating Beta inverses is quite tricky.
 
 ### Command line interface
 Elo comes with a rudimentary command-line interface. Simply run the `Makefile` and run the `elo` program for documentation.
